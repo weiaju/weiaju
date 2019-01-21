@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{margin: 0;padding: 0}
+        ul{list-style: none;position: absolute;display: none;z-index: 9999}
+        li{padding: 5px 20px;font-size: 16px;background-color: deepskyblue;cursor: default}
+        li:hover{background-color: dodgerblue}
+    </style>
+    <script src="js/Method.js"></script>
+</head>
+<body>
+<ul>
+    <li>新建</li>
+    <li>复制</li>
+    <li>剪切</li>
+    <li>粘帖</li>
+    <li>删除</li>
+</ul>
+<script>
+    var ul=document.querySelector("ul");
+    var preDiv;
+    var cloneDiv;
+    document.addEventListener("contextmenu",contextHandler);
+    ul.addEventListener("mouseleave",mouseLeaveHandler);
+    ul.addEventListener("click",clickHandler);
+
+    function contextHandler(e) {
+//            阻止默认行为，就是取消系统默认的菜单
+        e.preventDefault();
+//
+        ul.style.left=e.x-10+"px";
+        ul.style.top=e.y-10+"px";
+        ul.style.display="block"
+    }
+
+    function mouseLeaveHandler(e) {
+        ul.style.display="none";
+    }
+
+    function clickHandler(e) {
+        switch(e.target.textContent){
+            case "新建":
+                createDiv(e.x,e.y);
+                break;
+            case "复制":
+                cloneDivs();
+                break;
+            case "剪切":
+                cloneDivs();
+                removeDiv();
+                break;
+            case "粘帖":
+                document.body.appendChild(cloneDiv);
+                cloneDiv.style.left=e.x-25+"px";
+                cloneDiv.style.top=e.y-25+"px";
+                cloneDiv.addEventListener("dblclick",selectHandler);
+                break;
+            case "删除":
+                removeDiv();
+                break;
+        }
+        ul.style.display="none";
+    }
+
+    function cloneDivs() {
+        if(preDiv){
+            cloneDiv=preDiv.cloneNode(false);
+            cloneDiv.style.border="none";
+        }
+
+    }
+    function removeDiv() {
+        if(preDiv){
+            preDiv.removeEventListener("dblclick",selectHandler);
+            preDiv.removeEventListener("mousedown",dragHandler);
+            preDiv.remove();
+            preDiv=null;
+        }
+    }
+
+    function createDiv(x,y) {
+        var div=document.createElement("div");
+        var styles={
+            width:"50px",
+            height:"50px",
+            backgroundColor:Method.randomColor(true),
+            position:"absolute",
+            left:x-25+"px",
+            top:y-25+"px"
+        };
+
+        Method.setStyle(div,styles);
+        document.body.appendChild(div);
+        div.addEventListener("dblclick",selectHandler);
+    }
+
+    function selectHandler(e) {
+        if(preDiv){
+            preDiv.style.border="none";
+            preDiv.removeEventListener("mousedown",dragHandler);
+        }
+        preDiv=this;
+        preDiv.addEventListener("mousedown",dragHandler);
+        preDiv.style.border="1px solid #000000";
+    }
+
+
+    function dragHandler(e) {
+
+        if(e.type==="mousedown"){
+            e.preventDefault();
+            document.addEventListener("mousemove",dragHandler);
+//
+            document.offsetPoint={x:e.offsetX,y:e.offsetY};
+//
+            document.dragTarget=this;
+
+            this.addEventListener("mouseup",dragHandler);
+        }else if(e.type==="mousemove"){
+            this.dragTarget.style.left=e.pageX-this.offsetPoint.x+"px";
+            this.dragTarget.style.top=e.pageY-this.offsetPoint.y+"px";
+        }else if(e.type==="mouseup"){
+            document.removeEventListener("mousemove",dragHandler);
+            this.removeEventListener("mouseup",dragHandler);
+        }
+    }
+</script>
+</body>
+</html>
